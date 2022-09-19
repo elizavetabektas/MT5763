@@ -1,0 +1,52 @@
+---
+title: "Chapter10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Loading Packages and Reading In Data
+
+```{r}
+# load packages
+library(tidyverse)
+
+# read data into R
+ff <- readRDS("ff.rds")
+```
+
+# Looking at Overview of Dataset
+
+```{r}
+# summarise dataset
+summary(ff)
+```
+
+# Creating Boxplot of Thorax Against Group
+
+```{r}
+#boxplots of thorax against group
+ff %>% ggplot(aes(x=group, y=thorax)) + geom_boxplot()
+```
+
+# Creating Boxplot of Longevity Against Group
+
+```{r}
+#boxplots of longevity against group
+ff %>% ggplot(aes(x=group, y=longevity)) + geom_boxplot()
+```
+
+# Creating Boxplot of Thorax Against Longevity
+
+```{r}
+#scatterplot of longevity against thorax
+ff %>% ggplot(aes(x=thorax, y=longevity)) + geom_point()
+```
+
+
+```{r}
+# Print out some data in table format
+knitr::kable(iris[1:5, ], )
+```
