@@ -167,7 +167,7 @@ testStat <- c(testStat, obsStat)
 sum(testStat >= obsStat)/(NRepeat + 1)
 
 
-# Task 3
+# Task 4
 
 # Download the dataset soil.csv from Moodle, which contains measurements of
 # different elements (zinc, ytterbium and lutetium) at different sites
@@ -181,7 +181,7 @@ soil_df <- read_csv('soil.csv')
 # H_0:  mu_bhb = mu_mb, H_1:  mu_bhb =! mu_mb
 
 # Initialisation
-NRepeat <- 1000 # no. of times we will shuffle the labels
+NRepeat <- 10000 # no. of times we will shuffle the labels
 simData <- soil_df # initialise simulated data frame
 testStat <- rep(NA, NRepeat) # store test statistic
 testStats <- list('zinc' = testStat,
@@ -197,7 +197,7 @@ p_values <- list('zinc' = NA,
                  'ytterbium' = NA,
                  'lutetium' = NA)
 
-set.seed(15134) # for reproducibility
+# set.seed(15) # for reproducibility
 elements <- c('zinc', 'ytterbium', 'lutetium')
 
 for (element in elements) {
@@ -207,7 +207,6 @@ for (element in elements) {
   {
     # Shuffle the group labels (data stays the same)
     simData$site <- sample(simData$site, dim(simData)[1], replace=F)
-    
     
     # Compute and store test statistic
     # In this case, it's the difference across groups
@@ -243,4 +242,77 @@ plot_lutetium <- testStats_lutetium %>% ggplot(aes(x=test_stat)) + geom_histogra
 library(gridExtra)
 grid.arrange(plot_zinc, plot_ytterbium, plot_lutetium, ncol=2)
 
-# All p-values seem the same? Unless I made some kind of mistake
+# There is strong evidence against H_0 in all cases
+
+
+## Task 5
+
+running_df <- read_csv('running.csv')
+
+# Produce bootstrap 95% confidence intervals for the regression parameters,
+# when regressing men’s and women’s run times against time.
+# This dataset is fairly outdated now, so it would be interesting to plot
+# datapoints from 2008 onwards to see how good the predictions were.
+
+# Initialisation
+set.seed(56337) # for reproducibility
+NRepeat <- 100 # no. of bootstrapped samples
+bootResMen <- matrix(data = NA, nrow = NRepeat, ncol = 2) # results
+bootResWomen <- matrix(data = NA, nrow = NRepeat, ncol = 2) # results
+
+men_df <- running_df %>% subset(select=c('Year', "Men")) %>% na.omit()
+women_df <- running_df %>% subset(select=c('Year', "Women")) %>% na.omit()
+
+# Loop across all samples
+for (i in seq(NRepeat))
+{
+  # Resample with replacement
+  bootDataMen <- men_df[sample(x = 1:dim(men_df)[1], size = dim(men_df)[1], replace = T), ]
+  bootDataWomen <- women_df[sample(x = 1:dim(women_df)[1], size = dim(women_df)[1], replace = T), ]
+  
+  
+  # Fit model under this alternative reality
+  mdl_men <- lm(Men ~ Year, data = bootDataMen)
+  mdl_women <- lm(Women ~ Year, data = bootDataWomen)
+  
+  # Store results
+  bootResMen[i, ] <- coef(mdl_men)
+  bootResWomen[i, ] <- coef(mdl_women)
+}
+
+plot(men_df$Year, men_df$Men, pch=20, cex=2)
+apply(bootResMen, 1, function(x) {abline(x[1], x[2], 
+                                      col="lightgrey")})
+
+plot(women_df$Year, women_df$Women, pch=20, cex=2)
+apply(bootResWomen, 1, function(x) {abline(x[1], x[2], 
+                                      col="lightgrey")})
+
+
+# Set alpha level for CIs
+alpha <- 0.05 # 95%
+
+mens_bootstrapped_ci <- list('(Intercept)'= NA,
+                             'Year'= NA)
+mens_bootstrapped_ci[['(Intercept)']] <- quantile(bootResMen[, 1], c(alpha/2, 1-(alpha/2)))
+mens_bootstrapped_ci[['Year']] <- quantile(bootResMen[, 2], c(alpha/2, 1-(alpha/2)))
+mdl_men <- lm(Men ~ Year, data = men_df)
+mens_modelled_ci <- confint(mdl_men)
+
+
+womens_bootstrapped_ci <- list('(Intercept)'= NA,
+                             'Year'= NA)
+womens_bootstrapped_ci[['(Intercept)']] <- quantile(bootResWomen[, 1], c(alpha/2, 1-(alpha/2)))
+womens_bootstrapped_ci[['Year']] <- quantile(bootResWomen[, 2], c(alpha/2, 1-(alpha/2)))
+mdl_women <- lm(Women ~ Year, data = women_df)
+womens_modelled_ci <- confint(mdl_women)
+
+
+
+
+
+
+
+
+
+
