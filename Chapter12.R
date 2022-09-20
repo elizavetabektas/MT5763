@@ -65,11 +65,35 @@ yearly_plot
 
 # 12.2 APIs
 
+# Load required libraries
+library(lubridate)
+library(httr)
+library(jsonlite)
+library(tidyverse)
 
+# API call
+URL <- "https://api.coindesk.com/v1/bpi/historical/close.json?start=2020-03-01&end=2020-03-31"
 
+# Send http request
+response <- httr::GET(URL)
 
+# Read / unpack a binary file
+dtaJSON <- httr::content(response, as = "text", encoding = "UTF-8")
 
+# Parse JSON file
+dta <- jsonlite::fromJSON(dtaJSON)
 
+# Extract the relevant bits of data into a data frame
+df2 <- data.frame(Price=unlist(dta$bpi), 
+                 Date=names(dta$bpi))
+rownames(df2) <- NULL # remove row names
+df2$Date <- lubridate::as_date(df2$Date) # convert to Date
+
+# Plot data
+ggplot(df2, aes(x = Date, y = Price)) +
+  geom_point() +
+  geom_line() +
+  ggtitle("Bitcoin price index")
 
 
 
