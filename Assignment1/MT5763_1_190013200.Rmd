@@ -1,0 +1,437 @@
+---
+title: "MT5763_1_190013200"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r loading libraries and data, include=FALSE}
+library(tidyverse)
+library(lubridate) #for handling dates
+library(cowplot) # for plotting graphs side-by-side
+
+dfs <- list("Seoul" = read_csv("./BikeSeoul.csv"),
+            "Washington DC" = read_csv("./BikeWashingtonDC.csv"))
+```
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r data wrangling, include=FALSE}
+
+dfs[["Seoul"]] <- dfs[["Seoul"]] %>%
+  
+  # removing columns specified
+  select(-c("Visibility (10m)",
+            "Dew point temperature(C)",
+            "Solar Radiation (MJ/m2)",
+            "Rainfall(mm)",
+            "Snowfall (cm)")
+         ) %>%
+  
+  # filtering observations for which no bike count data was collected
+  filter(`Functioning Day` == "Yes"
+         )%>%
+  
+  # removing functioning day column as it is no longer required
+  select(-c(`Functioning Day`)
+         ) %>%
+  
+  # changing names of columns to be consistent with other dataframe
+  rename(Count = `Rented Bike Count`,
+         Temperature = `Temperature(C)`,
+         Humidity = `Humidity(%)`,
+         WindSpeed = `Wind speed (m/s)`,
+         Season = Seasons
+         ) %>%
+  
+  # converting date to a date object
+  mutate(Date = dmy(Date)
+         ) %>%
+  
+  mutate(FullDate = make_datetime(year(Date), # creating variable FullDate containing hour
+                                  month(Date),
+                                  mday(Date),
+                                  Hour,
+                                  tz="Asia/Seoul"),
+         # changing factor levels of Holiday to Yes/No
+         Holiday = factor(ifelse(Holiday == "Holiday", "Yes", "No"),
+                          levels=c("Yes", "No")),
+         # changing order of factor levels
+         Season = factor(Season,
+                         levels=c("Spring", "Summer", "Autumn", "Winter")))
+
+dfs[["Washington DC"]] <- dfs[["Washington DC"]] %>%
+  
+  # removing specified columns
+  select(-c("instant",
+            "yr",
+            "mnth",
+            "weekday",
+            "workingday",
+            "weathersit",
+            "atemp",
+            "casual",
+            "registered")
+         ) %>%
+  
+  # changing names of columns to match the ones for Seoul
+  rename(Count = cnt,
+         Temperature = temp,
+         Humidity = hum,
+         WindSpeed = windspeed,
+         Season = season,
+         Hour = hr,
+         Holiday = holiday,
+         Date = dteday
+         ) %>%
+  
+  mutate(Humidity = Humidity*100,              # converting Humidity to %
+         Temperature = (Temperature*(39+8)-8), # converting to degrees Celcius
+         WindSpeed = WindSpeed*67*1000/3600,   #  converting to m/s
+         
+         # changing factor levels to match Seoul
+         Season = factor(recode(Season,
+                         "1"="Winter",
+                         "2"="Spring",
+                         "3"="Summer",
+                         "4"="Autumn"),
+                         levels=c("Spring", "Summer", "Autumn", "Winter")),
+         
+         # changing factor levels of Holiday to Yes/No
+         Holiday = factor(ifelse(Holiday == 1, "Yes", "No"),
+                          levels=c("Yes", "No")),
+         
+         # converting Date to a date object
+         Date = ymd(Date)) %>%
+  
+  # creating FullDate so it contains hour
+  mutate(FullDate = make_datetime(year(Date),
+                                  month(Date),
+                                  mday(Date),
+                                  Hour,
+                                  tz="America/New_York"))
+                                # Washington DC and New York have same timezone
+
+```
+
+Maybe change it to months with categories?
+```{r air temperature variation over a year}
+
+########### QUESTION: How does air temperature varies over the course of a year?
+
+# We have the air temperature values for every hour of every day.
+# This means there will be fluctuations in temperature in each 24-hour period.
+# This is why I found average daily temperature prior to creating plots.
+
+daily_temperature_plts <- list()
+
+for (i in names(dfs)){
+  daily_temperature_plts[[i]] <- dfs[[i]] %>%
+    
+  # for each day, find average air temperature
+  group_by(Date) %>%
+  summarize(DailyTemperature = mean(Temperature)) %>%
+  
+  # plot points for every day and smooth line to show trend
+  ggplot(mapping = aes(x=Date, y=DailyTemperature)) +
+  geom_point(color=ifelse(i=="Seoul", "orchid", "darkcyan")) +
+  geom_smooth(color="black", method = "gam") +
+  scale_x_date(date_labels = "%b %Y") +        # for consistency with Washington
+  
+  # changing default titles
+  xlab("Date") +
+  ylab("Temperature (C)") +
+  ggtitle(i) +
+  theme(plot.title = element_text(hjust = 0.5))
+}
+
+# I decided to create two separate graphs, then show them side-by-side using
+# cowplot's plot_grid because:
+# 1. Seoul has 1 year of data, Washington has 2 years of data
+#    To comment on year-on-year changes, I didn't want to average the two years.
+# 2. Seoul data is from 2011, Washington is 2017 and 2018.
+#    So I couldn't use the same x-axis without only retaining month data.
+
+# creating grid to display plots side-by-side
+daily_temperature_plt <- plot_grid(daily_temperature_plts[["Seoul"]],
+                                   daily_temperature_plts[["Washington DC"]])
+daily_temperature_plt_title <- ggdraw() +
+  draw_label("Fluctuations in Daily Temperature",
+             fontface = 'bold')
+plot_grid(daily_temperature_plt_title,
+          daily_temperature_plt,
+          ncol = 1,
+          rel_heights = c(0.1, 1))
+
+```
+
+```{r effect of seasons on bike demand}
+################ QUESTION: Do seasons affect the average number of rented bikes? 
+
+bar_plts <- list()
+
+for (i in names(dfs)){
+  title <- paste(i, "seasons", sep="_")
+  bar_plts[[title]] <- dfs[[i]] %>%
+    
+  # calculating mean bikes rented in each season and error to calculate 99% CIs
+  group_by(Season) %>%
+  summarise(MeanRentedBikes = mean(Count),
+            error = qnorm(0.995)*sd(Count)/sqrt(length(Count))) %>%
+  
+  # plotting bar graph with 99% CIs
+  ggplot(mapping = aes(x=Season, y=MeanRentedBikes)) +
+  geom_bar(stat = "identity",
+           fill = ifelse(i=="Seoul", "orchid", "darkcyan")) +
+  geom_errorbar(aes(ymin=MeanRentedBikes-error,
+                    ymax=MeanRentedBikes+error),
+                width=0.2) +
+  
+  # changing default titles
+  ylab("Average Number of Rented Bikes") +
+  ggtitle(i) +
+  theme(plot.title = element_text(hjust = 0.5))
+}
+
+# as before, plotting above graphs side by side
+seasons_plt <- plot_grid(bar_plts[["Seoul_seasons"]],
+                         bar_plts[["Washington_seasons"]])
+seasons_plt_title <- ggdraw() +
+  draw_label("Effect of Seasons on Bike Renting",
+             fontface = 'bold')
+plot_grid(seasons_plt_title, seasons_plt, ncol = 1, rel_heights = c(0.1, 1))
+
+```
+how variable is the mean (tight CI)
+comparing means of seasons - how certain are we that they are different
+
+```{r effect of holidays on bike demand}
+######## QUESTION: Do holidays increase or decrease the demand for rented bikes?
+
+for (i in names(dfs)){
+  title <- paste(i, "holidays", sep="_")
+  bar_plts[[title]] <- dfs[[i]] %>%
+    
+  # calculating mean bikes rented in each season and error to calculate 99% CIs
+  group_by(Holiday) %>%
+  summarise(MeanRentedBikes = mean(Count),
+            error = qnorm(0.995)*sd(Count)/sqrt(length(Count))) %>%
+  
+  # plotting bar graph with 99% CIs
+  ggplot(mapping = aes(x=Holiday, y=MeanRentedBikes)) +
+  geom_bar(stat = "identity",
+           fill = ifelse(i=="Seoul", "orchid", "darkcyan")) +
+  geom_errorbar(aes(ymin=MeanRentedBikes-error,
+                    ymax=MeanRentedBikes+error),
+                width=0.2) +
+  
+  # changing default titles
+  xlab("On Holiday? Yes/No") +
+  ylab("Average Number of Rented Bikes") +
+  ggtitle(i) +
+  theme(plot.title = element_text(hjust = 0.5))
+}
+
+# as before, plotting above graphs side by side
+holidays_plt <- plot_grid(bar_plts[["Seoul_holidays"]],
+                         bar_plts[["Washington_holidays"]])
+holidays_plt_title <- ggdraw() +
+  draw_label("Effect of Holidays on Average Number of Rented Bikes",
+             fontface = 'bold')
+plot_grid(holidays_plt_title, holidays_plt, ncol = 1, rel_heights = c(0.1, 1))
+```
+
+```{r effect of time of day on bike demand}
+########### How does the time of day affect the demand for rented bikes? #########
+
+
+for (i in names(dfs)){
+  title <- paste(i, "time_of_day", sep="_")
+  bar_plts[[title]] <- dfs[[i]] %>%
+    
+  # calculating mean bikes rented in each season and error to calculate 99% CIs
+  group_by(Hour) %>%
+  summarise(MeanRentedBikes = mean(Count),
+            error = qnorm(0.995)*sd(Count)/sqrt(length(Count))) %>%
+  
+  # plotting bar graph with 99% CIs
+  ggplot(mapping = aes(x=Hour, y=MeanRentedBikes)) +
+  geom_bar(stat = "identity",
+           fill = ifelse(i=="Seoul", "orchid", "darkcyan")) +
+  geom_errorbar(aes(ymin=MeanRentedBikes-error,
+                    ymax=MeanRentedBikes+error),
+                width=0.2) +
+  
+  # changing default titles
+  xlab("Hour") +
+  ylab("Average Number of Rented Bikes") +
+  ggtitle(i) +
+  theme(plot.title = element_text(hjust = 0.5))
+}
+
+# as before, plotting above graphs side by side
+day_time_plt <- plot_grid(bar_plts[["Seoul_time_of_day"]],
+                          bar_plts[["Washington_time_of_day"]])
+day_time_plt_title <- ggdraw() +
+  draw_label("Effect of Holidays on Average Number of Rented Bikes",
+             fontface = 'bold')
+plot_grid(day_time_plt_title, day_time_plt, ncol = 1, rel_heights = c(0.1, 1))
+```
+
+```{r effect of meteorological variables on bike demand}
+
+# QUESTION: Is there an association between bike demand and the three 
+#           meteorological variables (air temperature, wind speed and humidity)?
+
+meteorogical_plts <- list()
+
+for (name in names(dfs)){
+  temperature_title <- paste(name, "temperature", sep="_")
+  temperature_plot <- dfs[[name]] %>%
+    ggplot() +
+    geom_smooth(mapping = aes(x=Temperature, y=Count)) +
+    xlab("Air Temperature (C)") +
+    ylab("Number of Bikes Rented")
+  
+  wind_speed_title <- paste(name, "wind_speed", sep="_")
+  wind_speed_plot <- dfs[[name]] %>%
+    ggplot() +
+    geom_smooth(mapping = aes(x=WindSpeed, y=Count)) +
+    xlab("Wind Speed (m/s)") +
+    ylab("Number of Bikes Rented")
+  
+  humidity_title <- paste(name, "humidity", sep="_")
+  humidity_plot <- dfs[[name]] %>%
+    ggplot() +
+    geom_smooth(mapping = aes(x=Humidity, y=Count)) +
+    xlab("Humidity (%)") +
+    ylab("Number of Bikes Rented")
+  
+  untitled_plot <- plot_grid(temperature_plot,
+                             wind_speed_plot,
+                             humidity_plot,
+                             ncol = 3)
+  
+  plt_title <- ggdraw() + draw_label(name)
+  
+  meteorogical_plts[[name]] <- plot_grid(plt_title,
+                                       untitled_plot,
+                                       ncol=1,
+                                       rel_heights = c(0.1, 1))
+}
+
+meteorology_plt_title <- ggdraw() +
+  draw_label("Effect of Meteorological Variables on Bike Demand",
+             fontface = 'bold')
+
+plot_grid(meteorology_plt_title,
+          meteorogical_plts[["Seoul"]],
+          meteorogical_plts[["Washington DC"]],
+          ncol = 1,
+          rel_heights = c(0.1, 1, 1))
+```
+
+```{r fit and summary of seoul linear model}
+
+# fitting linear model for Seoul
+seoul_lm <- lm(log(Count) ~ Season + Temperature + Humidity + WindSpeed,
+               data = seoul)
+
+summary(seoul_lm) # summary of Seoul linear model
+```
+Season Autumn, Winter, Temperature, Humidity and WindSpeed are significant to the model we can see this from the ** or *** next to p-values
+Multiple R-Squared is 0.4941, which is not close to 1, so this model does not explain variation in the data well
+
+```{r evaluating seoul linear model}
+seoul_resid <- resid(seoul_lm)
+# Histogram of residuals
+hist(seoul_resid)
+# Skewed left, so greater variation in left tail
+# Quantile-quantile plot
+qqnorm(seoul_resid)
+# Normality questionable from Q-Q plot and histogram. There is more variation towards left
+
+# Residuals vs fitted model
+plot(seoul_lm)
+```
+
+The red line is showing a systematic pattern for larger fitted values, suggesting we cannot assume linearity 
+The red-line in the scalelocation plot should be horizontal. In this example the variance appears to be increasing with fitted value. Constant variance appears to not be valid.
+model doesn't fit the data well, and we can't assume normality, linearity or constant variance
+
+######## RELEVEL to change "baseline" for linear model
+
+ residuals are the differences between data and fitted values
+ The p-value, in association with the t-statistic, help us to understand how significant our coefficient is to the model
+ In practice, any p-value below 0.05 is usually deemed as significant
+ It means we are confident that the coefficient is not zero, meaning the coefficient
+ does in fact add value to the model by helping to explain the variance within our dependent variable
+ The coefficient codes give us a quick way to visually see which coefficients are significant to the model.
+ To the right of the p-values you’ll see several asterisks (or none if the coefficient is not significant to the model)
+ The number of asterisks corresponds with the significance of the coefficient as described in the legend just under the coefficients section.
+ The more asterisks, the more significant.
+
+```{r fit and summary of washington linear model}
+washington_lm <- lm(log(Count) ~ Season + Temperature + Humidity + WindSpeed,
+               data = washington)
+summary(washington_lm)
+# All coefficients are statistically significant, summer is significant, unlike in Seoul
+# Multiple R-squared is 0.278, which is really low
+# so this model captures less variation that in seoul
+```
+
+```{r evaluating washington linear model}
+washington_resid <- resid(washington_lm)
+# Histogram of residuals
+hist(washington_resid)
+# Skewed left, so greater variation in left tail
+# Quantile-quantile plot
+qqnorm(washington_resid)
+# Normality questionable from Q-Q plot and histogram. There is more variation towards left
+
+# Residuals vs fitted model
+plot(washington_lm)
+```
+
+the plot of residuals against fitted values should show no obvious systematic pattern either horizontally or vertically. The residuals should be well scattered above and below
+zero, with vertical spread (indicating variance) which does not depend much on the fitted value
+There is a clear pattern, with red line going down and spread of points changes at larger fitted values
+normality and linearity cannot be assumed
+The red line in scale-location should be horizontal, and it is not, 
+variance is decreasing with fitted value, so constant variance is not valid
+
+Washington model is worse, which can be seen from R2 and graphically
+
+```{r CIs for estimated regression coefficients}
+# Display the 97% confidence intervals for the estimated regression coefficients.
+# Do you think these confidence intervals are reliable?
+confint(seoul_lm, level=0.97)
+confint(washington_lm, level=0.97)
+```
+No, because the models we fit don't capture most of the variation in the data
+IF IT OBEYS ASSUMPTIONS, then it will be reliable(trust confidence intervals are appropriate for data I have), may not be informative, but given data
+
+```{r prediction}
+# Assuming the model is trustworthy, what’s the expected number of rented bikes in winter when the air
+#temperature is freezing (0◦C), in the presence of light wind (0.5m/s) and a humidity of 20%. Provide
+#the 90% prediction intervals and comment on the results. Hint: Use the interval argument of the
+#predict function.
+
+new_data <- as_tibble(data.frame(Season = "Winter",
+                                Temperature = 0,
+                                WindSpeed = 0.5,
+                                Humidity = 20))
+
+predict.lm(seoul_lm, new_data, interval="prediction", level = 0.9)
+# the point estimate is 5.913404
+# the 97% CI is 4.290184 7.536624
+
+predict.lm(washington_lm, new_data, interval="prediction", level = 0.9)
+# the point estimate is 4.276413
+# the 97% CI is 1.799728 6.753099
+```
