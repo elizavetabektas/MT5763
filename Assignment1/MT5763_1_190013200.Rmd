@@ -5,6 +5,11 @@ output:
   html_document: default
 ---
 
+Change size and font of plot labels for bar graphs
+Change orientation of 2x3 plot?
+Change LATEX formatting
+Add titles to linear model plots, make the 2x2 bigger
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
@@ -21,10 +26,8 @@ dfs <- list("Seoul" = read_csv("./BikeSeoul.csv"),
 ```
 
 ## Data Wrangling
-
 `BikeSeoul.csv` and `BikeWashingtonDC.csv` were read in and cleaned for downstream analysis.
-
-__Note__: if running the code in this report, the _.csv_ files need to be in the same directory as the _.Rmd_ file.
+__Note__: if running the code in this report, the __.csv__ files need to be in the same directory as the __.Rmd__ file.
 
 ```{r data wrangling, include=FALSE}
 
@@ -124,15 +127,13 @@ dfs[["Washington DC"]] <- dfs[["Washington DC"]] %>%
 
 ```
 
-## Data Visualisation
+# Data Visualisation
+## How does air temperature varies over the course of a year?
+We have the air temperature values for every hour of every day.
+This means there will be fluctuations in temperature in each 24-hour period.
+This is why I found average daily temperature prior to creating plots.
 
-### How does air temperature varies over the course of a year?
-
-```{r air temperature variation over a year}
-
-# We have the air temperature values for every hour of every day.
-# This means there will be fluctuations in temperature in each 24-hour period.
-# This is why I found average daily temperature prior to creating plots.
+```{r air temperature variation over a year, include=FALSE}
 
 daily_temperature_plts <- list()
 
@@ -148,7 +149,7 @@ for (i in names(dfs)){
   geom_point(color=ifelse(i=="Seoul", "orchid", "darkcyan")) +
   geom_smooth(color="black", method = "gam") +
   scale_x_date(date_labels = "%b %Y",       # for consistency between datasets
-               breaks = "2 months") +       
+               breaks = ifelse(i=="Seoul", "2 months", "4 months")) +       
     
   # changing default titles
   xlab("Date") +
@@ -173,21 +174,19 @@ daily_temperature_plt_title <- ggdraw() +
              fontface = 'bold')
 
 daily_temperature_plt <- plot_grid(daily_temperature_plt_title,
-                                    daily_temperature_plt_untitled,
-                                    ncol = 1,
-                                    rel_heights = c(0.1, 1))
-
-print(daily_temperature_plt)
+                        daily_temperature_plt_untitled,
+                        ncol = 1,
+                        rel_heights = c(0.1, 1))
+```
+```{r output graph, fig.width=8, fig.height=8}
+daily_temperature_plt
 ```
 
-__Seoul__
-
-
-__Washington DC__
+## Washington DC
 In general, the daily temperature fluclations between the months of May and August are smaller than in all other months across the two years.
 From the trendlines and individual days, January is the coldest month of every 12-month period. From the data available, we can see December 2010 is much colder than December 2011, but this needs further investigation as December 2010 data is incomplete. There is less variation in summer 2011 than summer 2012, with summer 2012 being on average a few degrees warmer on average.
 
-__Comparing the Cities__
+## Comparing the Cities
 Seoul has data from `r min(dfs[["Seoul"]]$Date)` to `r max(dfs[["Seoul"]]$Date)`, while Washington DC data runs from `r min(dfs[["Washington DC"]]$Date)` to `r max(dfs[["Washington DC"]]$Date)`. This means the data in each dataset is from different and non-overlapping years and the amount of data is different.
 
 We can see the average daily temperatures in Seoul reached just over -15°C in the winter, which was much colder than the coldest temperature of just under -5°C in Washington DC.
@@ -201,7 +200,7 @@ The cities are similar in that their daily temperature fluctuations are lower in
 
 From the gradient of the trend line, we can see the average daily temperature in Seoul increased much more rapidly between the months of February and May than between May and August. In comparison, in Washington DC, the changes in gradient were much smoother.
 
-### Do seasons affect the average number of rented bikes?
+## Do seasons affect the average number of rented bikes?
 
 The plots below show the average number of rented bikes per hour for each season, with error bars representing 95% condifence intervals.
 
@@ -251,7 +250,7 @@ The bike rentals have less fluctuations throughout seasons in Washington DC than
 In the Seoul data, none of the error bars overlap, meaning the seasonal difference between bike demand is statistically significant.
 This is not true for Washington DC, where the confidence intervals for spring and autumn overlap, meaning the difference is not statistically significant. The confidence intervals of summer and winter don't overlap with other seasons, meaning they are statistically significant. The bike demand in Summer is almost double that of Winter.
 
-### Do holidays increase or decrease the demand for rented bikes?
+## Do holidays increase or decrease the demand for rented bikes?
 
 The plots below show the average number of rented bikes per hour against whether they were rented on a holiday, with error bars representing 95% condifence intervals.
 
@@ -298,7 +297,7 @@ The confidence intervals for number of bike rentals on holidays are much wider c
 
 The relative difference between bike rentals on holiday vs not on holiday is greater in Seoul compared to Washington DC, meaning proportionally more people are renting bikes on holidays in Washington DC.
 
-### How does the time of day affect the demand for rented bikes?
+## How does the time of day affect the demand for rented bikes?
 
 The plots below show the average number of rented bikes per hour against time of day, with error bars representing 95% condifence intervals.
 
@@ -320,8 +319,7 @@ for (i in names(dfs)){
   geom_errorbar(aes(ymin=MeanRentedBikes-error,
                     ymax=MeanRentedBikes+error),
                 width=0.2) +
-  geom_text(mapping = aes(label=round(MeanRentedBikes)), size=2) +
-  
+
   # changing default titles
   xlab("Hour") +
   ylab("Average Number of Rented Bikes") +
@@ -352,11 +350,11 @@ In both cities, we see a small peak in demand at 8am, after which it decreases.
 
 In Seoul, we see a steadier increase in bike demand between 10 am and 6pm. In Washington DC, we see bike demand decreasing from 8am to 10am, then a small statistically insignificant peak around lunchtime 12noon and 1pm (error bars overlapping).
 
-### Is there an association between bike demand and the three meteorological variables (air temperature, wind speed and humidity)?
+## Is there an association between bike demand and the three meteorological variables (air temperature, wind speed and humidity)?
 
 The plots below show the effect of three meteorological variables on bike demand.
 
-```{r effect of meteorological variables on bike demand}
+```{r effect of meteorological variables on bike demand, include=FALSE}
 
 meteorogical_plts <- list()
 
@@ -399,23 +397,30 @@ meteorology_plt_title <- ggdraw() +
   draw_label("Effect of Meteorological Variables on Bike Demand",
              fontface = 'bold')
 
-plot_grid(meteorology_plt_title,
-          meteorogical_plts[["Seoul"]],
-          meteorogical_plts[["Washington DC"]],
-          ncol = 1,
-          rel_heights = c(0.1, 1, 1))
+meteorology_plt <- plot_grid(meteorology_plt_title,
+                              meteorogical_plts[["Seoul"]],
+                              meteorogical_plts[["Washington DC"]],
+                              ncol = 1,
+                              rel_heights = c(0.1, 1, 1))
 ```
 
-__Air Temperature__
+```{r print meteorology plot}
+meteorology_plt
+```
+
+### Air Temperature
+
 For both cities, we see a steady increase in bike demand as air temperature increases, then decrease, following a similar trend. The 95% confidence intervals widen at the temperature extremes.
 
-__Wind Speed__
+### Wind Speed
+
 In both cities, there is an initial increase in bike demand as wind speed increases. In Seoul, the bike demand peaks at around 3m/s with a clear statistically significant peak. In Washington DC, there is no clear peak (considering the 95% confidence interval), with peak bike demand being between 4m/s and 7m/s.
 
 We can also see that in both cities, the confidence intervals widen significantly as wind speed approaches the upper extreme.
 The wind speeds in Washington DC get higher than in Seoul.
 
-__Humidity__
+### Humidity
+
 In Seoul, the confidence interval is much wider at lower humidity levels (<25%) than other humidity levels in Seoul.
 The confidence interval in Seoul is wider than in Washington DC.
 
@@ -423,13 +428,13 @@ In both cities, we see that as humidity increases, bike demand initially increas
 In Washington DC, the peak bike demand is at around 25% humidity level, with lowest demand being at 0% humidity level, which is not statistically different from 100% humidity level.
 On the other hand, in Seoul the peak happens at just under 50% humidity, and the bike demand at extremes being statistically different. Bike demand is lowest at 100% humidity.
 
-## Statistical Modelling
+# Statistical Modelling
 
-### Fitting Linear Models
+## Fitting Linear Models
 
 A linear model was fitted with log count as outcome, and season, air temperature, humidity and wind speed as predictors.
 
-#### Seoul
+### Seoul
 
 Below is a summary of the fitted model for the Seoul dataset.
 
@@ -447,32 +452,29 @@ From the star ratings, it is clear all coefficients (apart from the summer seaso
 Multiple R-Squared for this model is 0.4941, which is not close to 1, so this model does not explain the variation in the data well.
 
 The linear regression model is
-```{=latex}
-\begin{tabular}{ll}
-\[$Y_i ~ N(\alpha + \betax_i)$ for $i=1, ..., n$ with $Y_1, ..., Y_n$ independent\]
-\end{tabular}
-```
+
+$Y_i$ ~ $N(\alpha + \beta*x_i)$ for $i=1, ..., n$ with $Y_1, ..., Y_n$ independent
 
 Thus when fitting the normal linear regression model, we are making the assumptions:
 
-```{=latex}
-\begin{tabular}{ll}
-(i) $Y_1, . . . , Y_n$ are independent,
-(ii) $Y_1, . . . , Y_n$ are normally distributed,
-(iii) The mean of $Y_i$'s a linear function of xi,
-(iv) $Y_1, . . . , Y_n$ have the same variance.
-\end{tabular}
-```
+1. $Y_1, . . . , Y_n$ are independent,
+2. $Y_1, . . . , Y_n$ are normally distributed,
+3. The mean of $Y_i$'s a linear function of xi,
+4. $Y_1, . . . , Y_n$ have the same variance.
 
 We can check these assumptions graphically:
 
-```{r evaluating seoul linear model}
+```{r evaluating seoul linear model - histogram}
 
 # Histogram of residuals
 hist(resid(seoul_lm))
+```
 
+```{r evaluating seoul linear model - other}
 # Other useful plots
+par(mfrow=c(2,2))
 plot(seoul_lm)
+par(mfrow=c(1,1))
 ```
 
 Looking at __Normal Q-Q plot__ and __Histogram of resid(seoul_lm)__, we can see the distribution is left-skewed. This indicates non-normality.
@@ -481,7 +483,9 @@ To investigate linearity, we can look at __Residuals vs Fitted__. The red line i
 
 In the __Residuals vs Fitted__ plot, we can see a decrease in the vertical spread of the points at higher fitted values. The red line in the __Scale-Location__ plot should be horizontal with equally randomly spread points if the assumption of constant variance holds. This indicates constant variance is questionable.
 
-#### Washington DC
+### Washington DC
+
+Below is a summary of the fitted model for the Washington DC dataset.
 
 ```{r fit and summary of washington linear model}
 washington_lm <- lm(log(Count) ~ Season + Temperature + Humidity + WindSpeed,
@@ -495,13 +499,16 @@ Multiple R-squared is 0.278, indicating this model does not explain well the var
 
 Checking the assumptions for this linear model graphically:
 
-```{r evaluating washington linear model}
-
+```{r evaluating washington linear model - histogram}
 # Histogram of residuals
 hist(resid(washington_lm))
+```
 
+```{r evaluating washington linear model - other}
 # Other useful plots
+par(mfrow=c(2,2))
 plot(washington_lm)
+par(mfrow=c(1,1))
 ```
 
 From __Histogram of resid(washington_lm)__ and __Normal Q-Q__ plots, we can see the distribution of residuals is even more left-skewed than that of the Seoul model. Normality does not hold.
@@ -512,7 +519,9 @@ Constant variance cannot be assumed, however. The spread of points around the re
 
 The Washington DC linear model is clearly worse than the Seoul model due to the lower Multiple R-Squared value and clearly less assumptions hold.
 
-### Calculating Confidence Intervals for Estimated Regression Coefficients
+## Calculating Confidence Intervals for Estimated Regression Coefficients
+
+97% confidence intervals for estimated regression coefficients:
 
 ```{r CIs for estimated regression coefficients}
 print("Seoul")
@@ -521,13 +530,13 @@ print("Washington DC")
 confint(washington_lm, level=0.97)
 ```
 
-#### Do you think these confidence intervals are reliable?
+### Do you think these confidence intervals are reliable?
 
 We know that SeasonSummer is the only not significant coefficient in the Seoul model, therefore its confidence interval is too wide to be useful.
 
 Neither model obeys the assumptions, so the confidence intervals are not reliable.
 
-### Prediction
+## Prediction
 
 ```{r prediction}
 
