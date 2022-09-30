@@ -1,0 +1,494 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={MT5763\_1\_190013200},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\providecommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{MT5763\_1\_190013200}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{}
+    \preauthor{}\postauthor{}
+    \date{}
+    \predate{}\postdate{}
+  
+
+\begin{document}
+\maketitle
+
+\hypertarget{data-wrangling}{%
+\subsection{Data Wrangling}\label{data-wrangling}}
+
+\texttt{BikeSeoul.csv} and \texttt{BikeWashingtonDC.csv} were read in
+and cleaned for downstream analysis.
+
+\textbf{Note}: if running the code in this report, the \emph{.csv} files
+need to be in the same directory as the \emph{.Rmd} file.
+
+\hypertarget{data-visualisation}{%
+\subsection{Data Visualisation}\label{data-visualisation}}
+
+\hypertarget{how-does-air-temperature-varies-over-the-course-of-a-year}{%
+\subsubsection{How does air temperature varies over the course of a
+year?}\label{how-does-air-temperature-varies-over-the-course-of-a-year}}
+
+\begin{verbatim}
+## `geom_smooth()` using formula 'y ~ s(x, bs = "cs")'
+## `geom_smooth()` using formula 'y ~ s(x, bs = "cs")'
+\end{verbatim}
+
+\includegraphics{MT5763_1_190013200_files/figure-latex/air temperature variation over a year-1.pdf}
+
+\textbf{Seoul}
+
+\textbf{Washington DC} In general, the daily temperature fluclations
+between the months of May and August are smaller than in all other
+months across the two years. From the trendlines and individual days,
+January is the coldest month of every 12-month period. From the data
+available, we can see December 2010 is much colder than December 2011,
+but this needs further investigation as December 2010 data is
+incomplete. There is less variation in summer 2011 than summer 2012,
+with summer 2012 being on average a few degrees warmer on average.
+
+\textbf{Comparing the Cities} Seoul has data from 2017-12-01 to
+2018-11-30, while Washington DC data runs from 2011-01-01 to 2012-12-31.
+This means the data in each dataset is from different and
+non-overlapping years and the amount of data is different.
+
+We can see the average daily temperatures in Seoul reached just over
+-15°C in the winter, which was much colder than the coldest temperature
+of just under -5°C in Washington DC.
+
+The warmest temperatures are similar between the cities (a few degrees
+over 30°C).
+
+The coldest month in both cities is January, which can be seen both from
+the trendlines and individual points. In Seoul, the warmest month is
+August, whilst it is July in Washington.
+
+The cities are similar in that their daily temperature fluctuations are
+lower in summer compared to winter (seen from the spread of points
+around the trendlines).
+
+From the gradient of the trend line, we can see the average daily
+temperature in Seoul increased much more rapidly between the months of
+February and May than between May and August. In comparison, in
+Washington DC, the changes in gradient were much smoother.
+
+\hypertarget{do-seasons-affect-the-average-number-of-rented-bikes}{%
+\subsubsection{Do seasons affect the average number of rented
+bikes?}\label{do-seasons-affect-the-average-number-of-rented-bikes}}
+
+The plots below show the average number of rented bikes per hour for
+each season, with error bars representing 95\% condifence intervals.
+
+\includegraphics{MT5763_1_190013200_files/figure-latex/effect of seasons on bike demand-1.pdf}
+
+From these graphs, we can see that for all seasons, bike rentals are
+higher in Seoul compared to Washington DC.
+
+The bike rentals have less fluctuations throughout seasons in Washington
+DC than in Seoul. In Seoul, the bike demand is at least 3 times higher
+in spring compared to winter, and at least 4 times higher in summer.
+
+In the Seoul data, none of the error bars overlap, meaning the seasonal
+difference between bike demand is statistically significant. This is not
+true for Washington DC, where the confidence intervals for spring and
+autumn overlap, meaning the difference is not statistically significant.
+The confidence intervals of summer and winter don't overlap with other
+seasons, meaning they are statistically significant. The bike demand in
+Summer is almost double that of Winter.
+
+\hypertarget{do-holidays-increase-or-decrease-the-demand-for-rented-bikes}{%
+\subsubsection{Do holidays increase or decrease the demand for rented
+bikes?}\label{do-holidays-increase-or-decrease-the-demand-for-rented-bikes}}
+
+The plots below show the average number of rented bikes per hour against
+whether they were rented on a holiday, with error bars representing 95\%
+condifence intervals.
+
+\includegraphics{MT5763_1_190013200_files/figure-latex/effect of holidays on bike demand-1.pdf}
+
+During holidays, less people are renting bikes when compared to not
+during holidays.
+
+The confidence intervals for number of bike rentals on holidays are much
+wider compared to non-holidays, indicating there is greater variation in
+number of bikes rented during holidays. Additionally, the confidence
+intervals don't overlap, meaning the differences are statistically
+significant.
+
+The relative difference between bike rentals on holiday vs not on
+holiday is greater in Seoul compared to Washington DC, meaning
+proportionally more people are renting bikes on holidays in Washington
+DC.
+
+\hypertarget{how-does-the-time-of-day-affect-the-demand-for-rented-bikes}{%
+\subsubsection{How does the time of day affect the demand for rented
+bikes?}\label{how-does-the-time-of-day-affect-the-demand-for-rented-bikes}}
+
+The plots below show the average number of rented bikes per hour against
+time of day, with error bars representing 95\% condifence intervals.
+
+\includegraphics{MT5763_1_190013200_files/figure-latex/effect of time of day on bike demand-1.pdf}
+
+In general, the confidence intervals in Seoul are wider than in
+Washington DC for every hour.
+
+In both cities, we see a decrease in bike rental demand between 7pm and
+4am. The bike demand in Washington DC drops more rapidly, whereas the
+relative decrease in bike usage in Seoul at night is not as big.
+
+In Seoul, the hour with smallest average bike rentals is 4am, although
+this is not statistically different from 5am as the confidence intervals
+overlap. Similarly, 4am has the least demand in Washington DC, but this
+is statistically different from every other time of day.
+
+In Seoul, the bike demand is highest at 6pm, and this is statistically
+different from every other time of day. In Washington DC, the bike
+demand is highest at 5pm, which is closely followed by 6pm (and the
+confidence intervals overlap).
+
+In both cities, we see a small peak in demand at 8am, after which it
+decreases.
+
+In Seoul, we see a steadier increase in bike demand between 10 am and
+6pm. In Washington DC, we see bike demand decreasing from 8am to 10am,
+then a small statistically insignificant peak around lunchtime 12noon
+and 1pm (error bars overlapping).
+
+\hypertarget{is-there-an-association-between-bike-demand-and-the-three-meteorological-variables-air-temperature-wind-speed-and-humidity}{%
+\subsubsection{Is there an association between bike demand and the three
+meteorological variables (air temperature, wind speed and
+humidity)?}\label{is-there-an-association-between-bike-demand-and-the-three-meteorological-variables-air-temperature-wind-speed-and-humidity}}
+
+The plots below show the effect of three meteorological variables on
+bike demand.
+
+\begin{verbatim}
+## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
+## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
+## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
+## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
+## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
+## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
+\end{verbatim}
+
+\includegraphics{MT5763_1_190013200_files/figure-latex/effect of meteorological variables on bike demand-1.pdf}
+
+\textbf{Air Temperature} For both cities, we see a steady increase in
+bike demand as air temperature increases, then decrease, following a
+similar trend. The 95\% confidence intervals widen at the temperature
+extremes.
+
+\textbf{Wind Speed} In both cities, there is an initial increase in bike
+demand as wind speed increases. In Seoul, the bike demand peaks at
+around 3m/s with a clear statistically significant peak. In Washington
+DC, there is no clear peak (considering the 95\% confidence interval),
+with peak bike demand being between 4m/s and 7m/s.
+
+We can also see that in both cities, the confidence intervals widen
+significantly as wind speed approaches the upper extreme. The wind
+speeds in Washington DC get higher than in Seoul.
+
+\textbf{Humidity} In Seoul, the confidence interval is much wider at
+lower humidity levels (\textless25\%) than other humidity levels in
+Seoul. The confidence interval in Seoul is wider than in Washington DC.
+
+In both cities, we see that as humidity increases, bike demand initially
+increases. As humidity levels keep increading, bike demand decreases.
+Despite following the same general trend, the shapes of the trend lines
+look quite different. In Washington DC, the peak bike demand is at
+around 25\% humidity level, with lowest demand being at 0\% humidity
+level, which is not statistically different from 100\% humidity level.
+On the other hand, in Seoul the peak happens at just under 50\%
+humidity, and the bike demand at extremes being statistically different.
+Bike demand is lowest at 100\% humidity.
+
+\hypertarget{statistical-modelling}{%
+\subsection{Statistical Modelling}\label{statistical-modelling}}
+
+\hypertarget{fitting-linear-models}{%
+\subsubsection{Fitting Linear Models}\label{fitting-linear-models}}
+
+A linear model was fitted with log count as outcome, and season, air
+temperature, humidity and wind speed as predictors.
+
+\hypertarget{seoul}{%
+\paragraph{Seoul}\label{seoul}}
+
+Below is a summary of the fitted model for the Seoul dataset.
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = log(Count) ~ Season + Temperature + Humidity + WindSpeed, 
+##     data = dfs[["Seoul"]])
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -5.1073 -0.4281  0.0812  0.5493  2.4352 
+## 
+## Coefficients:
+##                Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)   6.7336965  0.0467062 144.171  < 2e-16 ***
+## SeasonSummer  0.0036038  0.0327843   0.110  0.91247    
+## SeasonAutumn  0.3733211  0.0261578  14.272  < 2e-16 ***
+## SeasonWinter -0.3830362  0.0349918 -10.946  < 2e-16 ***
+## Temperature   0.0492700  0.0015053  32.732  < 2e-16 ***
+## Humidity     -0.0224974  0.0004844 -46.441  < 2e-16 ***
+## WindSpeed     0.0253809  0.0093544   2.713  0.00668 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.8276 on 8458 degrees of freedom
+## Multiple R-squared:  0.4941, Adjusted R-squared:  0.4937 
+## F-statistic:  1377 on 6 and 8458 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+From the star ratings, it is clear all coefficients (apart from the
+summer season) are significant to this model. (As the p-values are all
+less than 0.05)
+
+Multiple R-Squared for this model is 0.4941, which is not close to 1, so
+this model does not explain the variation in the data well.
+
+The linear regression model is
+
+\begin{tabular}{ll}
+\[$Y_i ~ N(\alpha + \betax_i)$ for $i=1, ..., n$ with $Y_1, ..., Y_n$ independent\]
+\end{tabular}
+
+Thus when fitting the normal linear regression model, we are making the
+assumptions:
+
+\begin{tabular}{ll}
+(i) $Y_1, . . . , Y_n$ are independent,
+(ii) $Y_1, . . . , Y_n$ are normally distributed,
+(iii) The mean of $Y_i$'s a linear function of xi,
+(iv) $Y_1, . . . , Y_n$ have the same variance.
+\end{tabular}
+
+We can check these assumptions graphically:
+
+\includegraphics{MT5763_1_190013200_files/figure-latex/evaluating seoul linear model-1.pdf}
+\includegraphics{MT5763_1_190013200_files/figure-latex/evaluating seoul linear model-2.pdf}
+\includegraphics{MT5763_1_190013200_files/figure-latex/evaluating seoul linear model-3.pdf}
+\includegraphics{MT5763_1_190013200_files/figure-latex/evaluating seoul linear model-4.pdf}
+\includegraphics{MT5763_1_190013200_files/figure-latex/evaluating seoul linear model-5.pdf}
+
+Looking at \textbf{Normal Q-Q plot} and \textbf{Histogram of
+resid(seoul\_lm)}, we can see the distribution is left-skewed. This
+indicates non-normality.
+
+To investigate linearity, we can look at \textbf{Residuals vs Fitted}.
+The red line is close to the dashed line, indicating linearity holds
+reasonably well.
+
+In the \textbf{Residuals vs Fitted} plot, we can see a decrease in the
+vertical spread of the points at higher fitted values. The red line in
+the \textbf{Scale-Location} plot should be horizontal with equally
+randomly spread points if the assumption of constant variance holds.
+This indicates constant variance is questionable.
+
+\hypertarget{washington-dc}{%
+\paragraph{Washington DC}\label{washington-dc}}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = log(Count) ~ Season + Temperature + Humidity + WindSpeed, 
+##     data = dfs[["Washington DC"]])
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -5.4834 -0.6069  0.2458  0.8440  3.5203 
+## 
+## Coefficients:
+##                Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)   4.6264010  0.0576892  80.195  < 2e-16 ***
+## SeasonSummer -0.3651680  0.0300276 -12.161  < 2e-16 ***
+## SeasonAutumn  0.5361839  0.0289332  18.532  < 2e-16 ***
+## SeasonWinter  0.1046103  0.0341346   3.065  0.00218 ** 
+## Temperature   0.0797914  0.0017401  45.856  < 2e-16 ***
+## Humidity     -0.0233425  0.0005317 -43.901  < 2e-16 ***
+## WindSpeed     0.0245022  0.0044358   5.524 3.37e-08 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 1.263 on 17372 degrees of freedom
+## Multiple R-squared:  0.278,  Adjusted R-squared:  0.2777 
+## F-statistic:  1115 on 6 and 17372 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+All coefficients are significant in this model. In constrast to the
+Seoul linear model, summer is significant.
+
+Multiple R-squared is 0.278, indicating this model does not explain well
+the variation seen in the data, performing worse than the Seoul model.
+
+Checking the assumptions for this linear model graphically:
+
+\includegraphics{MT5763_1_190013200_files/figure-latex/evaluating washington linear model-1.pdf}
+\includegraphics{MT5763_1_190013200_files/figure-latex/evaluating washington linear model-2.pdf}
+\includegraphics{MT5763_1_190013200_files/figure-latex/evaluating washington linear model-3.pdf}
+\includegraphics{MT5763_1_190013200_files/figure-latex/evaluating washington linear model-4.pdf}
+\includegraphics{MT5763_1_190013200_files/figure-latex/evaluating washington linear model-5.pdf}
+
+From \textbf{Histogram of resid(washington\_lm)} and \textbf{Normal Q-Q}
+plots, we can see the distribution of residuals is even more left-skewed
+than that of the Seoul model. Normality does not hold.
+
+We can assume linearity, as the red line in \textbf{Residuals vs Fitted}
+is quite close to the dashed line.
+
+Constant variance cannot be assumed, however. The spread of points
+around the red line in the \textbf{Residuals vs Fitted} plot is clearly
+not equally random, and the red line in the \textbf{Scale-Location} plot
+is clearly not horizontal.
+
+The Washington DC linear model is clearly worse than the Seoul model due
+to the lower Multiple R-Squared value and clearly less assumptions hold.
+
+\hypertarget{calculating-confidence-intervals-for-estimated-regression-coefficients}{%
+\subsubsection{Calculating Confidence Intervals for Estimated Regression
+Coefficients}\label{calculating-confidence-intervals-for-estimated-regression-coefficients}}
+
+\begin{verbatim}
+## [1] "Seoul"
+\end{verbatim}
+
+\begin{verbatim}
+##                     1.5 %      98.5 %
+## (Intercept)   6.632322686  6.83507030
+## SeasonSummer -0.067553139  0.07476072
+## SeasonAutumn  0.316546593  0.43009553
+## SeasonWinter -0.458984431 -0.30708797
+## Temperature   0.046002904  0.05253719
+## Humidity     -0.023548780 -0.02144592
+## WindSpeed     0.005077663  0.04568421
+\end{verbatim}
+
+\begin{verbatim}
+## [1] "Washington DC"
+\end{verbatim}
+
+\begin{verbatim}
+##                    1.5 %      98.5 %
+## (Intercept)   4.50119998  4.75160198
+## SeasonSummer -0.43033590 -0.30000019
+## SeasonAutumn  0.47339115  0.59897666
+## SeasonWinter  0.03052896  0.17869159
+## Temperature   0.07601506  0.08356781
+## Humidity     -0.02449639 -0.02218851
+## WindSpeed     0.01487540  0.03412904
+\end{verbatim}
+
+\hypertarget{do-you-think-these-confidence-intervals-are-reliable}{%
+\paragraph{Do you think these confidence intervals are
+reliable?}\label{do-you-think-these-confidence-intervals-are-reliable}}
+
+We know that SeasonSummer is the only not significant coefficient in the
+Seoul model, therefore its confidence interval is too wide to be useful.
+
+Neither model obeys the assumptions, so the confidence intervals are not
+reliable.
+
+\hypertarget{prediction}{%
+\subsubsection{Prediction}\label{prediction}}
+
+\begin{verbatim}
+## [1] "Seoul"
+\end{verbatim}
+
+\begin{verbatim}
+##        fit    lwr      upr
+## 1 5.913404 4.5512 7.275607
+\end{verbatim}
+
+\begin{verbatim}
+## [1] "Washington DC"
+\end{verbatim}
+
+\begin{verbatim}
+##        fit      lwr      upr
+## 1 4.276413 2.197947 6.354879
+\end{verbatim}
+
+The point estimate from the Seoul model is 5.9134037 with a 90\%
+confidence interval of (4.5512005, 7.275607), which is not statistically
+different from the point estimate of 4.2764134 with CI (2.1979473,
+6.3548794) from the Washington DC model because their confidence
+intervals overlap.
+
+
+\end{document}
