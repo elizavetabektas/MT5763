@@ -3,21 +3,10 @@
 #Problem A
 #Consider the following independent random variables:
   
-#X∼(μ=4,σ2=10)
-#Y∼(a=2,b=8)
+#X∼N(μ=4,σ2=10)
+#Y∼Y(a=2,b=8)
 #Compute the probability that X>Y, i.e. Pr(X>Y).
-print("yes")
 #Use bootstrapping to derive the sampling distribution for your estimate of Pr(X>Y).
-
-soCalledHelper <- function(input){
-  output <- input
-  for(i in 1:500) {
-    output <- cbind(output, input)
-  }
-  return(output)
-}
-
-soCalledHelper()
 
 #Show how the sample variance of this sampling distribution changes as a function of the number of Monte Carlo simulations.
 
