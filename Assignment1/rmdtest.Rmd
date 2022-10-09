@@ -1,0 +1,108 @@
+---
+title: "My Reproducible Document"
+output:
+  bookdown::html_document2:
+    toc: true
+date: "2022-10-04"
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# R Markdown {#RMark}
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE, fig.cap="My figure caption"}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+## Equations
+
+$$
+y = \beta_0 + \beta_1X_1
+(\#eq:lm1)
+$$
+
+Is the same as:
+
+
+\begin{equation}
+y = \beta_0 + \beta_1X_1 (\#eq:lm2)
+\end{equation}
+
+
+## Adding a table
+
+```{r mtcars, echo=FALSE}
+knitr::kable(mtcars[1:5, 1:5], caption = "The mtcars data.")
+```
+
+or
+
+
+
+| Heading 1 | Heading 2 | Heading 3 |
+|-----------|-----------|-----------|
+| A         | 3         | 3         |
+| B         | 4         | 2         |
+| C         | 5         | 1         |
+
+: this is my table caption
+
+This is some normal text
+
+## Cross-Referencing
+
+To do this we need to change the `YAML` header to a `bookdown` format.
+
+### Figures: {-}
+
+Figure \@ref(fig:pressure) shows the relationship between temperature and pressure.
+
+### Equations {-}
+
+Equations \@ref(eq:lm1) and \@ref(eq:lm2) give the formula for a simple linear regression
+
+### Sections {-}
+
+Section \@ref(RMark) describes a bit about R Markdown.
+
+Note the use of `{-}` above. This indicates that I do not wish the section to be numbered.
+
+## Referencing
+
+We can include a reference to the `akima` package using `[@akima-me]` and ensuring that we have a bibliography file stated in the `YAML` header:
+
+``` yaml
+---
+title: "My Reproducible Document"
+output: html_document
+bibliography: references.bib
+---
+```
+
+In this analysis we used the `akima` package [@akima-me].
+
+Or
+
+@akima-me show in their package that things happen.
+
+Note that I also added a section heading for references to the end of the document.
+
+
+# References

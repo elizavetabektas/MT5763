@@ -1,8 +1,9 @@
 #Task: Monte Carlo simulation (R)
-#Write efficient R code (use parallel computation techniques where applicable) to solve the following problems using Monte Carlo simulation.
+#Write efficient R code (use parallel computation techniques where applicable)
+# to solve the following problems using Monte Carlo simulation.
 #Problem A
 #Consider the following independent random variables:
-  
+
 #X∼N(μ=4,σ2=10)
 #Y∼Y(a=2,b=8)
 #Compute the probability that X>Y, i.e. Pr(X>Y).

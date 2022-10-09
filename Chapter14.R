@@ -63,4 +63,21 @@ someNumbers2 <- as.data.frame(someNumbers2)
 system.time(IO_readr(someNumbers2)) # total 78.347 s
 system.time(IO_data_table(someNumbers2)) # this just won't run in a reasonable amount of time, but I'll guess 15 seconds
 
+soCalledHelper <- function(input){
+  output <- input
+  for(i in 1:500) {
+    output <- cbind(output, input)
+  }
+  return(output)
+}
 
+aSimpleFunction <- function() { 
+  someData <- read_csv("./test.csv")
+  someCalcs <- runif(1e6)%*%runif(1e6)
+  charVar <- rep(c("anything", "anythingelse"), 1e3)
+  newFile <- soCalledHelper(charVar)  
+}
+
+# Start profiler 
+aSimpleFunction()
+# Stop profiler
